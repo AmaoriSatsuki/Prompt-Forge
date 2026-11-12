@@ -1,0 +1,118 @@
+/**
+ * 设计令牌。所有颜色 / 尺寸 / 字体的唯一来源，业务样式只引用变量。
+ * 注意：模块归属色不在这里定义 —— 它来自 constants/colors.ts 的颜色注册表，
+ * 由组件以行内 CSS 变量 --pf-module-color 注入，保证「颜色表可增删」只有一处真源。
+ *
+ * 主题（用户 2026 轮新增的日/月切换）：
+ * - 颜色令牌**按主题各给一套**：默认（:root）是深色，`[data-theme="light"]` 覆盖成亮色；
+ * - 尺寸 / 字体 / 圆角等与主题无关，只在 :root 定义一次；
+ * - 切换主题只改 `<html data-theme>`（见 utils/theme.ts），因此没有组件需要感知主题。
+ */
+
+:root {
+  color-scheme: dark;
+
+  /*
+   * 背景层级：**深色主题刻意不用纯黑**（用户 2026 轮：「黑色太黑，稍微不要那么深」）。
+   * 原来的 #14151a/#101116 在真实 WebView2 里显得又黑又硬，整片像关机状态；
+   * 现在整体抬高一档、并往蓝灰偏一点，层次关系（raised 更亮、sunken 更暗）保持不变。
+   * 注意：这是**观感调整**，四个层级的相对关系与所有语义色都不变。
+   */
+  --pf-bg: #1c1e25;
+  --pf-bg-raised: #252832;
+  --pf-bg-sunken: #16181e;
+  --pf-bg-hover: #2d313d;
+
+  /* 描边：随底色一起抬高，否则边框会在新底色上显得过暗、贴不住 */
+  --pf-border: #333845;
+  --pf-border-strong: #464c5b;
+
+  /* 文字 */
+  --pf-text: #e6e7ec;
+  --pf-text-dim: #a5aab6;
+  --pf-text-faint: #737885;
+
+  /* 语义色 */
+  --pf-accent: #5b8cff;
+  --pf-accent-strong: #7aa2ff;
+  --pf-ok: #30a46c;
+  --pf-warn: #d9a441;
+  --pf-danger: #e5484d;
+
+  /*
+   * 翻译服务状态指示灯（顶栏圆点）。色值由用户 2026 轮给定，因此不复用上面的语义色 ——
+   * 用户要的是这三个具体颜色，不是「主题里的成功色」。
+   * 绿 / 红两种状态在亮色主题下也保持不变（够清楚）；只有「未配置」需要跟着主题走，
+   * 否则白色圆点在亮色顶栏上等于看不见 —— 见下面 [data-theme='light'] 的覆盖。
+   */
+  --pf-status-unconfigured: #ffffff;
+  --pf-status-ok: #2ecc71;
+  --pf-status-error: #e74c3c;
+
+  /* 滚动条滑块 */
+  --pf-thumb: #3a3e4a;
+
+  /* 尺寸 */
+  --pf-topbar-height: 48px;
+  /* 预设库宽度只是兜底值：真实值由 AppShell 以行内 CSS 变量注入（默认 276px = 刚好放下 8 个色块） */
+  --pf-preset-width: 276px;
+  --pf-hub-size: 16px;
+  --pf-radius-sm: 4px;
+  --pf-radius: 8px;
+  --pf-radius-lg: 12px;
+  --pf-radius-pill: 999px;
+  --pf-gap-xs: 4px;
+  --pf-gap-sm: 8px;
+  --pf-gap: 12px;
+  --pf-gap-lg: 16px;
+
+  /* 字体：优先中文可读性 */
+  --pf-font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Segoe UI", system-ui,
+    sans-serif;
+  --pf-font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+  --pf-text-xs: 11px;
+  --pf-text-sm: 12px;
+  --pf-text-base: 13px;
+}
+
+/*
+ * 亮色主题：只覆盖**颜色**令牌，尺寸与字体继承上面的 :root。
+ * 层级关系与深色一致（raised 比 bg 亮一点、sunken 更暗），只是整体翻到浅色。
+ *
+ * **刻意不用纯白**（用户 2026 轮：「白色太亮，稍微暗一点点」）：
+ * 原来的 #ffffff/#f4f5f8 在真实屏幕上发白刺眼，长时间看提示词很累。
+ * 现在整体压暗一档、带一点冷灰，raised 与 bg 只差一点点（够分层即可）。
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --pf-bg: #e9ebef;
+  --pf-bg-raised: #f2f3f6;
+  --pf-bg-sunken: #dfe2e8;
+  --pf-bg-hover: #d8dbe3;
+
+  --pf-border: #cbcfd9;
+  --pf-border-strong: #aab1c0;
+
+  --pf-text: #23262e;
+  --pf-text-dim: #4d5464;
+  --pf-text-faint: #7a8194;
+
+  /*
+   * 强调色在亮色底上要压深一档，否则白字压在按钮上对比度不足（.pf-btn--primary 用白字）。
+   */
+  --pf-accent: #3b6cf0;
+  --pf-accent-strong: #2f5cd8;
+  --pf-ok: #1f8f5b;
+  --pf-warn: #a9741a;
+  --pf-danger: #cf2f36;
+
+  /*
+   * 「未配置」的圆点：亮色下改用深灰（用户指定的白色保留给深色主题）。
+   * 语义不变：它仍然是「没有凭据、不能判断」，只是换成在这个底色上看得见的颜色。
+   */
+  --pf-status-unconfigured: #6b7280;
+
+  --pf-thumb: #c3c8d4;
+}
+

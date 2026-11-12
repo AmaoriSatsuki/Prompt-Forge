@@ -1,0 +1,38 @@
+# 行尾与文本文件规则（跨平台一致性）
+#
+# 背景：Windows 的换行是 CRLF，Linux/macOS 是 LF。同一份代码用两种换行，
+# 会导致「我什么都没改，git 却说整个文件都变了」的假改动，也会在 checkout 时
+# 刷一屏 `LF will be replaced by CRLF` 警告。
+# 这里把规则钉死：**仓库里统一存 LF**，工作区按平台自动处理。
+
+# 默认：文本文件自动识别，仓库内一律 LF
+* text=auto eol=lf
+
+# Windows 脚本必须在工作区保持 CRLF，否则某些环境执行会出问题
+*.ps1  text eol=crlf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+
+# 二进制文件：不参与行尾转换，不做 diff（避免损坏）
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.exe   binary
+*.dll   binary
+*.lib   binary
+*.pdb   binary
+*.zip   binary
+
+# 锁文件：不参与行尾转换（避免合并冲突噪声）
+package-lock.json  -text
+Cargo.lock         -text
+
+# 语言与统计：让 GitHub/Gitee 的语言识别与 diff 更准确
+*.rs    text diff=rust
+*.ts    text diff=typescript
+*.tsx   text diff=typescript
+*.css   text diff=css
+*.md    text diff=markdown

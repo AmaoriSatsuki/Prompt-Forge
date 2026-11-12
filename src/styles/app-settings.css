@@ -1,0 +1,440 @@
+/*
+ * 齿轮设置弹窗（D80）：左侧 Tab 导航 + 右侧内容区。
+ *
+ * 结构参考用户给的 UI.html 原型（左侧 160px 竖排 Tab、右侧内容区滚动、右上角关闭），
+ * 但**颜色 / 圆角 / 间距一律用榫言自己的令牌**（tokens.css），不照搬原型的色值：
+ * 原型是"深灰底 + 蓝点缀"，本项目有两套主题色阶，只认 `--pf-*` 变量。
+ *
+ * 两条硬约定（与设置面板 D46 同源）：
+ * - 外框不滚动，只有 `.pf-app-settings__content` 滚；
+ * - ✕ 固定在弹窗本体上，不随内容滚走。
+ */
+
+.pf-modal__panel--app {
+  position: relative;
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  width: 660px;
+  /* 固定高度：Tab 切换时弹窗尺寸不跳；窄屏时按视口收缩 */
+  height: min(500px, 84vh);
+  max-width: 92vw;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 关闭按钮：挂在弹窗本体上（不在滚动区里），因此永远停在右上角 */
+.pf-app-settings__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pf-radius-sm);
+  background: transparent;
+  color: var(--pf-text-faint);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pf-app-settings__close:hover {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+}
+
+/* ---------- 左侧 Tab ---------- */
+
+.pf-app-settings__tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding: var(--pf-gap) var(--pf-gap-sm);
+  overflow-y: auto;
+  border-right: 1px solid var(--pf-border);
+  background: var(--pf-bg-sunken);
+}
+
+.pf-app-settings__tab {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--pf-radius);
+  background: transparent;
+  color: var(--pf-text-dim);
+  font-size: var(--pf-text-base);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pf-app-settings__tab:hover {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+}
+
+.pf-app-settings__tab--on,
+.pf-app-settings__tab--on:hover {
+  background: color-mix(in srgb, var(--pf-accent) 16%, transparent);
+  color: var(--pf-accent);
+  font-weight: 600;
+}
+
+/* ---------- 右侧内容区（唯一滚动容器） ---------- */
+
+.pf-app-settings__content {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--pf-gap-lg) 26px var(--pf-gap-lg) var(--pf-gap-lg);
+  overflow-y: auto;
+}
+
+.pf-app-settings__title {
+  margin: 0 0 var(--pf-gap-sm);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pf-text);
+}
+
+/* ---------- 推送服务 Tab ---------- */
+
+.pf-push {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 设置行：左边标题/描述，右边控件；行间用一条细线分隔 */
+.pf-push__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-gap-lg);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.pf-push__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pf-push__title {
+  font-size: var(--pf-text-base);
+  font-weight: 500;
+  color: var(--pf-text);
+}
+
+.pf-push__desc {
+  max-width: 320px;
+  font-size: var(--pf-text-sm);
+  line-height: 1.5;
+  color: var(--pf-text-dim);
+}
+
+.pf-push__input {
+  flex: 0 0 auto;
+  width: 104px;
+  padding: 7px 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-size: var(--pf-text-base);
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.pf-push__input:focus {
+  border-color: var(--pf-accent);
+}
+
+/* 开关关闭时置灰（用户明确要求：禁用而不是隐藏，让人看得出"这里还有一项"） */
+.pf-push__input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pf-push__error {
+  margin: var(--pf-gap-sm) 0 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-danger);
+}
+
+/* 使用说明：浅色底 + 主题色描边，比正文略小一号 */
+.pf-push__hint {
+  margin-top: var(--pf-gap);
+  padding: var(--pf-gap);
+  border: 1px solid color-mix(in srgb, var(--pf-accent) 28%, transparent);
+  border-radius: var(--pf-radius);
+  background: color-mix(in srgb, var(--pf-accent) 10%, transparent);
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  line-height: 1.7;
+}
+
+.pf-push__hint-title {
+  font-weight: 600;
+}
+
+/* ---------- 列表分页 Tab（D86） ---------- */
+
+/* 与推送服务页同一套视觉语言：左标题/描述、右控件、行间细线 */
+.pf-paging {
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-paging__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-gap-lg);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.pf-paging__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pf-paging__title {
+  font-size: var(--pf-text-base);
+  font-weight: 500;
+  color: var(--pf-text);
+}
+
+.pf-paging__desc {
+  max-width: 320px;
+  font-size: var(--pf-text-sm);
+  line-height: 1.5;
+  color: var(--pf-text-dim);
+}
+
+/* 说明块：与推送页的使用说明同一套浅色底 + 主题色描边 */
+.pf-paging__hint {
+  margin-top: var(--pf-gap);
+  padding: var(--pf-gap);
+  border: 1px solid color-mix(in srgb, var(--pf-accent) 28%, transparent);
+  border-radius: var(--pf-radius);
+  background: color-mix(in srgb, var(--pf-accent) 10%, transparent);
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  line-height: 1.7;
+}
+
+.pf-paging__hint-title {
+  font-weight: 600;
+}
+
+/* ---------- 滑动开关 ---------- */
+
+.pf-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-sunken);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.pf-toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--pf-text-dim);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  /* 只动 transform：不改尺寸、不改布局（架构 §6.10） */
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+}
+
+.pf-toggle--on {
+  border-color: var(--pf-accent);
+  background: color-mix(in srgb, var(--pf-accent) 70%, transparent);
+}
+
+.pf-toggle--on .pf-toggle__knob {
+  transform: translateX(20px);
+  background: #ffffff;
+}
+
+.pf-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- 词典管理 Tab（面板本体沿用 dictionary.css 的类） ---------- */
+
+.pf-dict-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-gap-sm);
+  min-height: 0;
+}
+
+/* 底部操作排：与原来的弹窗 footer 一样靠右，但不参与弹窗外框 */
+.pf-dict__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-gap-sm);
+  margin-top: var(--pf-gap-sm);
+}
+
+/*
+ * 词典 Tab 里的列表自己有滚动条（拖拽排序的边缘自动滚动依赖它作为滚动容器），
+ * 因此给它一个上限高度，避免与外层内容区形成两条"看起来一样"的滚动条。
+ */
+.pf-dict-panel .pf-dict__body {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* ---------- 导入导出 Tab（D115） ---------- */
+
+/*
+ * 结构与「推送服务」页同一套：行 = 左标题/描述 + 右控件，行间一条细线。
+ * 勾选项与选项按钮是这一页新增的两种控件，尺寸全部走令牌，两套主题共用一套规则。
+ */
+
+/* 勾选行：整行可点（label 包住 input），鼠标停在文字上也能勾 */
+/*
+ * D117：库名与描述放在同一排（复选框 → 库名 → 描述），不再两行堆叠 ——
+ * 五个库这样能省下近一半高度；两者靠字号 / 字重 / 颜色三层区分（名字 13px 600、
+ * 描述 12px 更淡），一眼分得清哪个是库名、哪个是补充说明。
+ */
+.pf-bundle__check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--pf-border);
+  cursor: pointer;
+}
+
+.pf-bundle__check {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--pf-accent);
+  cursor: pointer;
+}
+
+.pf-bundle__check-text {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+}
+
+.pf-bundle__check-text .pf-push__title {
+  font-size: var(--pf-text-base);
+  font-weight: 600;
+  color: var(--pf-text);
+}
+
+.pf-bundle__check-text .pf-push__desc {
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-faint);
+}
+
+/* 操作排：靠左，与词典 Tab 的底部操作排同一口径 */
+.pf-bundle__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  margin-top: var(--pf-gap-sm);
+}
+
+/* 文件概况块：行式清单，标签与条数各占一列 */
+.pf-bundle__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--pf-gap-sm);
+  padding: var(--pf-gap);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg-sunken);
+}
+
+.pf-bundle__summary-title {
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+}
+
+.pf-bundle__line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pf-gap-sm);
+  font-size: var(--pf-text-sm);
+  line-height: 1.7;
+  color: var(--pf-text);
+}
+
+.pf-bundle__line-label {
+  flex: 0 0 auto;
+  min-width: 48px;
+  color: var(--pf-text-dim);
+}
+
+.pf-bundle__line-count {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 二选一（覆盖 / 重命名）：两个并排的小按钮，选中态与 Tab 选中态同一套配色 */
+.pf-bundle__choice {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.pf-bundle__option {
+  padding: 6px 12px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text-dim);
+  font-size: var(--pf-text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.pf-bundle__option:hover {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+}
+
+.pf-bundle__option--on,
+.pf-bundle__option--on:hover {
+  border-color: var(--pf-accent);
+  background: color-mix(in srgb, var(--pf-accent) 16%, transparent);
+  color: var(--pf-accent);
+  font-weight: 600;
+}

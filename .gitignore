@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# 离线逻辑断言的编译产物（由 npm run verify:logic 生成）
+.verify-out
+
+# 颜色扩容回归用的源码副本与产物（由 npm run verify:color-scale 生成）
+.verify-color-scale
+.verify-out-scale
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 临时日志（排查时 Out-File 出来的）
+.vlog.txt
+
+# 开发文档：作者本地私有，不随公开仓库发布（公开仓库只留 README + 源码 + LICENSE）
+BluePrint/
+
+# 凭据与本机环境（防止以后误提交）
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+.cargo/credentials

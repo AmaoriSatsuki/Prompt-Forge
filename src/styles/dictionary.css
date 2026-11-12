@@ -1,0 +1,252 @@
+/* 词典管理弹窗 */
+
+.pf-dict__hint {
+  margin: 0 0 var(--pf-gap-sm);
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+.pf-dict__notice {
+  margin: 0 0 var(--pf-gap-sm);
+  padding: 6px 10px;
+  border: 1px solid var(--pf-warn);
+  border-radius: var(--pf-radius-sm);
+  background: color-mix(in srgb, var(--pf-warn) 12%, transparent);
+  color: var(--pf-warn);
+  font-size: var(--pf-text-sm);
+}
+
+/* 列表区：外框不滚动，只有这里滚（与设置弹窗同一套约定，D46） */
+.pf-dict__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin-bottom: var(--pf-gap);
+}
+
+.pf-dict__list {
+  display: flex;
+  flex-direction: column;
+  /* 2026 轮：加大行距与容器内边距，行与行之间的边框不贴在一起 */
+  gap: 10px;
+  padding: 6px;
+}
+
+.pf-dict__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  padding: 7px 9px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg-raised);
+  transition: box-shadow 0.12s, border-color 0.12s;
+}
+
+/* 拖拽中的行：降透明度 + 阴影（用户要求） */
+.pf-dict__row--dragging {
+  opacity: 0.55;
+  border-color: var(--pf-accent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* 插入指示线：主题色 2px，画在行与行之间的缝隙中央 */
+.pf-dict__row--insert-before::before,
+.pf-dict__row--insert-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pf-accent);
+}
+
+.pf-dict__row--insert-before::before {
+  top: -6px;
+}
+
+.pf-dict__row--insert-after::after {
+  bottom: -6px;
+}
+
+.pf-dict__row--off .pf-dict__label {
+  color: var(--pf-text-faint);
+}
+
+/* 拖拽把手：定宽 flex 容器 + 内联 SVG，尺寸必须显式写在 CSS 里（§6.11） */
+.pf-dict__handle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pf-text-faint);
+  cursor: grab;
+}
+
+.pf-dict__handle svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.pf-dict__handle:hover {
+  color: var(--pf-text);
+}
+
+.pf-dict__meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-dict__label {
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-dict__count {
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 启用/禁用开关：固定占位，切换时不改变布局（§6.10） */
+.pf-dict__switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-sunken);
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+.pf-dict__switch--on {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent);
+}
+
+.pf-dict__knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pf-text);
+  transition: transform 0.12s;
+}
+
+.pf-dict__switch--on .pf-dict__knob {
+  transform: translateX(16px);
+}
+
+.pf-dict__empty {
+  margin: var(--pf-gap) 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-faint);
+}
+
+.pf-dict__error {
+  margin: var(--pf-gap-sm) 0 0;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-danger);
+}
+
+/* ---------- 字段映射（第二层弹窗） ---------- */
+
+.pf-dict__mapping {
+  z-index: 70;
+}
+
+/* 命名弹窗（导入前置） */
+.pf-dict__naming {
+  z-index: 70;
+}
+
+.pf-dict__field--column {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.pf-dict__name-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-size: var(--pf-text-base);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pf-dict__name-input:focus {
+  border-color: var(--pf-accent);
+}
+
+.pf-dict__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-gap-sm);
+  margin: var(--pf-gap-sm) 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+}
+
+.pf-dict__field .pf-select {
+  flex: 1 1 auto;
+  max-width: 62%;
+}
+
+.pf-dict__preview {
+  max-height: 190px;
+  overflow: auto;
+  margin: var(--pf-gap-sm) 0;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+}
+
+.pf-dict__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--pf-text-xs);
+}
+
+.pf-dict__table th,
+.pf-dict__table td {
+  max-width: 240px;
+  padding: 4px 8px;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.pf-dict__table th {
+  position: sticky;
+  top: 0;
+  color: var(--pf-text-dim);
+  background: var(--pf-bg-sunken);
+}

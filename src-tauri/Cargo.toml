@@ -1,0 +1,72 @@
+[package]
+name = "prompt-forge"
+version = "0.2.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "prompt_forge_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+# 原生「打开文件」对话框：拿真实路径交给后端解析，避免把大文件字节塞进 JSON IPC
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# 本地词典解析：CSV / SQLite / 纯文本编码
+# - csv：RFC4180（引号内逗号、换行、分号/制表符分隔都靠它）
+# - rusqlite(bundled)：把 SQLite 编进 exe，干净机器上不依赖 sqlite3.dll（约 +1MB）
+# - encoding_rs：中文 CSV 常是 GBK，UTF-8 解码失败时按 GB18030 兜底
+csv = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+encoding_rs = "0.8"
+
+# 翻译请求。用系统原生 TLS（Windows 上是 schannel）：不需要 C 工具链，
+# 并且自动使用系统证书库，对公司代理 / 抓包环境更友好。
+reqwest = { version = "0.12", default-features = false, features = [
+  "json",
+  "charset",
+  "http2",
+  "system-proxy",
+  "native-tls",
+] }
+
+# 密钥存 Windows 凭据管理器，不落磁盘明文
+keyring = { version = "3", default-features = false, features = ["windows-native"] }
+md5 = "0.8.1"
+
+# 实时推流（D81）：本机 WebSocket 服务端，把「最终拼接文本」推给 ComfyUI 的「SunYan Sync」节点。
+# - tokio：tauri 内部用的就是同一个 runtime，这里只是显式声明要用的特性
+#   （net 监听端口 / sync 广播通道与 watch / time 超时与退避 / macros 给 select! 与 #[tokio::test]）
+# - tokio-tungstenite：只做握手与帧编解码，**不启用 TLS** —— 服务只听 127.0.0.1，没必要
+# - futures-util：WebSocketStream 的 Stream/Sink 扩展方法（.next() / .send()）
+tokio = { version = "1", features = ["net", "sync", "time", "macros", "rt"] }
+tokio-tungstenite = "0.30"
+futures-util = "0.3"
+
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
+
+# libsqlite3-sys 编译 sqlite3.c 时，debug 配置会带 /Z7，在本机 MSVC 上直接报
+# `cl: 命令行 error D8050: 无法执行 c1.dll`（sqlite3.c 太大，调试记录塞不下）。
+# 只给这个包关掉调试信息：项目自身仍保留调试符号，release 配置不受影响。
+[profile.dev.package."libsqlite3-sys"]
+debug = false

@@ -1,0 +1,70 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--pf-font);
+  font-size: var(--pf-text-base);
+  line-height: 1.6;
+  color: var(--pf-text);
+  background: var(--pf-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 桌面应用：禁止整页被拖拽选中造成的视觉噪声，文本区域单独放开 */
+  user-select: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+textarea,
+input,
+select,
+[contenteditable='true'],
+[contenteditable='plaintext-only'] {
+  font-family: inherit;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* 细滚动条（需求 8：英文输出整框固定，内置小滚轮）。
+   WebView2 为 Chromium 内核，::-webkit-scrollbar 生效；scrollbar-width 作为标准备用。 */
+.pf-scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pf-thumb) transparent;
+}
+
+.pf-scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.pf-scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pf-scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--pf-thumb);
+  border-radius: 3px;
+}
+
+.pf-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--pf-border-strong);
+}
+
+.pf-scroll-thin::-webkit-scrollbar-corner {
+  background: transparent;
+}

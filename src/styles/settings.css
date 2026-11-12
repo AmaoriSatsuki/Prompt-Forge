@@ -1,0 +1,304 @@
+/* 设置弹窗：多套配置列表 + 详情表单 */
+
+.pf-modal__panel--wide {
+  width: 720px;
+  /*
+   * 外框**不再自己滚动**（用户 2026 轮：「外框的滚动条去除」）。
+   * 弹窗是 flex 列：标题与底部（关闭、缓存）自然高度，中间的设置区吃掉剩余空间，
+   * 滚动只发生在右下详情区与左侧列表里 —— 因此不会出现两条滚动条，
+   * 关闭按钮与缓存区也永远停在原位。
+   */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-settings {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--pf-gap-lg);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------- 配置列表 ---------- */
+
+.pf-profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-gap-sm);
+  min-height: 0;
+}
+
+.pf-profile-list__items {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 9px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text-dim);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.pf-profile:hover {
+  color: var(--pf-text);
+  border-color: var(--pf-border-strong);
+}
+
+.pf-profile--selected {
+  color: var(--pf-text);
+  border-color: var(--pf-accent);
+}
+
+.pf-profile__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pf-text-sm);
+}
+
+.pf-profile__badges {
+  display: flex;
+  gap: 4px;
+}
+
+.pf-profile__badge {
+  padding: 0 6px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-pill);
+  font-size: var(--pf-text-xs);
+  line-height: 16px;
+  color: var(--pf-text-faint);
+}
+
+.pf-profile__badge--active {
+  color: var(--pf-accent-strong);
+  border-color: var(--pf-accent);
+}
+
+.pf-profile__badge--ok {
+  color: var(--pf-ok);
+  border-color: var(--pf-ok);
+}
+
+.pf-profile__badge--missing {
+  color: var(--pf-warn);
+  border-color: var(--pf-warn);
+}
+
+/* ---------- 详情 ---------- */
+
+.pf-settings__detail {
+  min-width: 0;
+  /* 高度由弹窗的剩余空间决定（见 .pf-modal__panel--wide），这里只负责滚动 */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pf-settings__actions {
+  display: flex;
+  gap: var(--pf-gap-sm);
+  margin-bottom: var(--pf-gap);
+}
+
+.pf-form__row {
+  display: flex;
+  gap: var(--pf-gap-lg);
+}
+
+.pf-form__row > .pf-field {
+  flex: 1;
+}
+
+.pf-field__input--short {
+  width: 90px;
+}
+
+.pf-field__hint {
+  margin: 0;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+/* 只读的说明性字段（百度翻译这类没有可填项时用） */
+.pf-field__static {
+  margin: 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+  line-height: 1.7;
+}
+
+.pf-env-list {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+}
+
+.pf-env-list li {
+  margin-bottom: 2px;
+}
+
+.pf-env-list code {
+  padding: 1px 6px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-family: var(--pf-font-mono);
+  font-size: var(--pf-text-xs);
+}
+
+.pf-env-list span {
+  margin-left: 8px;
+  color: var(--pf-text-faint);
+  font-size: var(--pf-text-xs);
+}
+
+/* ---------- 密钥 ---------- */
+
+.pf-key {
+  display: flex;
+  gap: var(--pf-gap-sm);
+}
+
+/* 百度翻译的「APP ID + 密钥」两行 */
+.pf-cred {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-cred__row {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+}
+
+.pf-cred__label {
+  flex: 0 0 64px;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+.pf-key__state {
+  margin-left: 6px;
+  color: var(--pf-warn);
+}
+
+.pf-key__state--ok {
+  color: var(--pf-ok);
+}
+
+/* ---------- 连接测试 ---------- */
+
+/*
+ * 按钮 + 结论文字同一行。
+ * `flex-wrap: wrap` 是刻意的：结论一长（例如「连接正常（凭据来自系统环境变量，用时 1234 毫秒）」）
+ * 应当**换到下一行**，而不是把「测试连接」按钮压窄 —— 按钮本身由 .pf-btn 保证不收缩、不换行。
+ */
+.pf-conn {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pf-gap);
+  margin-top: var(--pf-gap-sm);
+}
+
+.pf-conn__result {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+}
+
+.pf-conn__result--ok {
+  color: var(--pf-ok);
+}
+
+.pf-conn__result--bad {
+  color: var(--pf-danger);
+}
+
+/* ---------- 下拉选择（翻译服务） ---------- */
+
+.pf-select {
+  position: relative;
+}
+
+.pf-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+.pf-select::after {
+  content: '';
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--pf-text-dim);
+  border-bottom: 1.5px solid var(--pf-text-dim);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.pf-select select option {
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+}
+
+/* ---------- 翻译缓存（设置面板底部） ---------- */
+
+.pf-cache {
+  margin-top: var(--pf-gap);
+  padding: 10px 12px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg-sunken);
+}
+
+.pf-cache__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pf-gap-sm);
+}
+
+.pf-cache__label {
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+}
+
+.pf-cache__value {
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-cache__hint {
+  margin: 4px 0 8px;
+  font-size: var(--pf-text-xs);
+  line-height: 1.7;
+  color: var(--pf-text-faint);
+}
+
+.pf-cache__actions {
+  display: flex;
+  gap: var(--pf-gap-xs);
+}

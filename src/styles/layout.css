@@ -1,0 +1,906 @@
+/* 应用骨架：顶栏 + 三栏工作区（左：输出列表 / 输入框；右：预设库） */
+
+.pf-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 工作区：左右两栏 + 中间可拖拽的垂直分隔条 */
+.pf-workbench {
+  --pf-input-height: 254px;
+  /* 兜底值，真实宽度由 AppShell 注入（默认 276px，见 D48） */
+  --pf-preset-width: 276px;
+
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px;
+}
+
+/* 左栏：上=输出列表，下=中文输入框 */
+.pf-left-col {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  min-height: 0;
+}
+
+.pf-output-pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--pf-bg-raised);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-lg) var(--pf-radius-lg) 0 0;
+}
+
+.pf-input-pane {
+  flex: 0 0 auto;
+  height: var(--pf-input-height);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  background: var(--pf-bg-raised);
+  border: 1px solid var(--pf-border);
+  border-radius: 0 0 var(--pf-radius-lg) var(--pf-radius-lg);
+}
+
+/* 输入框右上角：左边是「当前编辑哪一排」的渐变色块，右边两个按钮 */
+.pf-input-pane__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  flex: 0 0 auto;
+}
+
+/*
+ * 当前编辑模块的标识：一个渐变色块，不带文字与编号（需求 3）。
+ * 与其他位置的色块同一套渐变（--pf-module-gradient 由行内样式注入）。
+ *
+ * 尺寸是「稍大的长方形」（用户 2026 轮）：高度略增、宽度多增，比原来的一枚小方块更显眼，
+ * 但仍明显宽大于高，不会在工具条里抢视线、也不会把右侧两个按钮挤走（工具条高 28px）。
+ * 圆角与位置保持不变。
+ */
+.pf-input-pane__swatch {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--pf-module-gradient);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* 把两个按钮推到右边 */
+.pf-input-pane__spacer {
+  flex: 1;
+}
+
+/* ---------- 分隔条 ---------- */
+
+.pf-splitter {
+  position: relative;
+  flex: 0 0 auto;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+
+.pf-splitter--y {
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.pf-splitter--x {
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.pf-splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 1px;
+  background: var(--pf-border-strong);
+}
+
+.pf-splitter--y::after {
+  width: 44px;
+  height: 2px;
+}
+
+.pf-splitter--x::after {
+  width: 2px;
+  height: 44px;
+}
+
+.pf-splitter:hover {
+  background: color-mix(in srgb, var(--pf-accent) 22%, transparent);
+}
+
+/* ---------- 顶栏 ---------- */
+
+.pf-topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap);
+  height: var(--pf-topbar-height);
+  padding: 0 var(--pf-gap-lg);
+  border-bottom: 1px solid var(--pf-border);
+  background: var(--pf-bg-raised);
+  flex: 0 0 auto;
+}
+
+/* 批量翻译进度条已随批量翻译一起移除（工具栏整合） */
+
+.pf-topbar__brand {
+  display: flex;
+  /* 主副标题之间留出呼吸感（2026 轮：改为「Prompt Forge / 提示词工坊」） */
+  align-items: baseline;
+  gap: var(--pf-gap);
+}
+
+.pf-topbar__title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pf-topbar__subtitle {
+  /* 比主标题小一号，颜色用中灰（--pf-text-dim），保持专业工具的克制感 */
+  font-size: var(--pf-text-base);
+  color: var(--pf-text-dim);
+  letter-spacing: 0.04em;
+}
+
+.pf-topbar__count {
+  margin-left: auto;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-topbar__provider {
+  /* 圆点与文字同排对齐：圆点本身用行内块，不参与文字基线 */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-pill);
+  background: transparent;
+  color: var(--pf-text-dim);
+  font-size: var(--pf-text-xs);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+/*
+ * 状态指示灯：直径 8px 的实心圆。
+ * 三种状态只切背景色，**不改尺寸、不改 display**（架构 §6.10：悬停/状态变化不得让布局跳动）。
+ */
+.pf-topbar__status-light {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pf-status-unconfigured);
+  /* 深色顶栏上的白点需要一点描边才看得出边界（未配置时） */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.pf-topbar__status-light--ok {
+  background: var(--pf-status-ok);
+}
+
+.pf-topbar__status-light--error {
+  background: var(--pf-status-error);
+}
+
+.pf-topbar__provider:hover {
+  color: var(--pf-text);
+  border-color: var(--pf-accent);
+}
+
+.pf-topbar__actions {
+  display: flex;
+  gap: var(--pf-gap-sm);
+}
+
+/* 主题切换：只有一枚图标，宽度按内容（正方形按钮），与其它按钮同高 */
+.pf-topbar__theme {
+  width: 28px;
+  padding: 0;
+  color: var(--pf-text-dim);
+}
+
+/*
+ * 图标的尺寸**必须在 CSS 里再写一遍**，只靠 SVG 上的 `width="18" height="18"` 属性不够：
+ * 那些属性只是「呈现提示」，会被 flex 布局的收缩覆盖。实测事故（2026 轮）：
+ * 这颗按钮是**定宽 28px** 的 flex 容器，于是 18px 宽的图标被压成 **2px**
+ * （正是描边宽度，读出来是 `svg rect=2 x 18`），界面上只剩太阳图标中心那个圆，
+ * 看起来就像「按钮里只有一个小点、图标没加载出来」。
+ *
+ * 修法：显式给 CSS 尺寸 + `flex: 0 0 auto`（两者都有效，一起写是为了意图明确、
+ * 且不依赖「flex 项不会被压」这种隐含前提）。已用真实浏览器量过：
+ * 修前 2×18，修后 18×18，按钮仍是 28×28。
+ */
+.pf-topbar__theme svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- 预设库（右栏） ---------- */
+
+.pf-preset {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--pf-preset-width);
+  width: var(--pf-preset-width);
+  min-height: 0;
+  border-left: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-lg);
+  background: var(--pf-bg-raised);
+  overflow: hidden;
+}
+
+.pf-preset--drop-active {
+  border-left-color: var(--pf-accent);
+}
+
+.pf-preset__head {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  height: 34px;
+  padding: 0 var(--pf-gap);
+  flex: 0 0 auto;
+}
+
+.pf-preset__title {
+  margin: 0;
+  font-size: var(--pf-text-sm);
+  font-weight: 600;
+  color: var(--pf-text-dim);
+}
+
+.pf-preset__count {
+  margin-left: auto;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-preset__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--pf-gap-sm) var(--pf-gap) var(--pf-gap);
+}
+
+.pf-preset__error {
+  margin: 0;
+  padding: var(--pf-gap-sm) var(--pf-gap);
+  font-size: var(--pf-text-xs);
+  color: var(--pf-warn);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+/* 磨砂玻璃落点提示：拖着模块枢悬停在预设库上时整块亮起 */
+.pf-preset__drop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--pf-accent);
+  border-radius: var(--pf-radius-lg);
+  background: color-mix(in srgb, var(--pf-accent) 16%, rgba(16, 17, 22, 0.45));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.pf-preset__drop-hint {
+  padding: 6px 14px;
+  border: 1px solid var(--pf-accent);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+}
+
+/* ---------- 预设搜索框 ---------- */
+
+.pf-search {
+  position: relative;
+  padding: 0 var(--pf-gap) var(--pf-gap-sm);
+  flex: 0 0 auto;
+}
+
+.pf-search__input {
+  width: 100%;
+  height: 26px;
+  padding: 0 24px 0 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pf-search__input:focus {
+  border-color: var(--pf-accent);
+}
+
+.pf-search__input::placeholder {
+  color: var(--pf-text-faint);
+}
+
+/* 藏掉 type=search 自带的清除按钮，用我们自己的那个 */
+.pf-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.pf-search__clear {
+  position: absolute;
+  right: calc(var(--pf-gap) + 5px);
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pf-text-faint);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pf-search__clear:hover {
+  color: var(--pf-text);
+}
+
+/* ---------- 颜色筛选：只有色块，没有文字（需求 4） ---------- */
+
+.pf-filter {
+  padding: 0 var(--pf-gap) var(--pf-gap-sm);
+  border-bottom: 1px solid var(--pf-border);
+  flex: 0 0 auto;
+}
+
+.pf-filter__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/*
+ * 颜色筛选色块。
+ *
+ * 结构：按钮本体是「外框」，内部另有一层 `.pf-swatch__inner` 画真正的颜色。
+ * 这样选中时可以**只缩小内部的颜色块、同时把外框撑大**（用户 2026 轮要求的效果）：
+ * 颜色块与留白反差更大、选中更显眼，而按钮占位不变（若直接改按钮尺寸，
+ * 同一行后面的色块会被推来推去 —— 架构 §6.10）。
+ */
+.pf-swatch {
+  --pf-swatch-color: var(--pf-border-strong);
+  --pf-swatch-gradient: var(--pf-swatch-color);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s, background-color 0.12s;
+}
+
+/* 内部颜色块：默认填满外框，留 2px 边距 */
+.pf-swatch__inner {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  /* 彩色是渐变，白色是纯色（无法渐变） */
+  background: var(--pf-swatch-gradient);
+  transition: width 0.12s, height 0.12s, border-radius 0.12s;
+}
+
+.pf-swatch:hover {
+  transform: translateY(-1px);
+  border-color: var(--pf-text-dim);
+}
+
+/*
+ * 选中态：**内部色块缩小**（20 → 14），外框相对显得更大更空，
+ * 再加一圈**细描边**把整个外框点亮。
+ *
+ * 圈层刻意做细（内 1px + 外 2px）：第一版用了内 1px + 外 4px，
+ * 视觉上等于 5px 的双层圆环，用户反馈「外框太粗」（用户 2026 轮）。
+ */
+.pf-swatch--on {
+  border-color: var(--pf-text);
+  background: var(--pf-bg-raised);
+  box-shadow: 0 0 0 1px var(--pf-swatch-color), 0 0 0 2px var(--pf-text);
+}
+
+.pf-swatch--on .pf-swatch__inner {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+/* D64：选中时内部色块缩到 14px，@ 字符也要跟着缩，否则会显得"方块很大"；
+ * D78：用户要求「再缩小一点点」—— 10 → 9px（只动 1px，别一次缩太多）。 */
+.pf-swatch--on .pf-swatch__glyph {
+  font-size: 9px;
+}
+
+/*
+ * 色块上的字符（D62：画师库的 `@`；D67：快照库的 `S`）。
+ *
+ * 用绝对定位叠在内部颜色层之上（不参与 flex 布局，因此不会把色块撑大、也不会推挤同一行）。
+ *
+ * 颜色一律白色连同一个**轻微暗投影**：D77 之后画师块（#2af598 → #009efd）与
+ * 快照块（#9795f0 → #fbc8d4）都是亮色渐变，纯白字在浅粉那一头几乎看不见；
+ * 加一层 1px 的暗投影既能保住「白字」这个用户定过的口径，又能让字符在浅底上立起来。
+ */
+.pf-swatch__glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+  pointer-events: none;
+}
+
+.pf-swatch {
+  position: relative;
+}
+
+/* ---------- 右键菜单（预设的权重 / 编辑 / 删除） ---------- */
+
+/*
+ * 菜单宽度：从 176px 收到 152px。
+ *
+ * 用户 2026 轮反馈「明显太宽」——菜单里只有「权重 / 编辑内容 / 删除预设」三项，
+ * 176px 时右侧留白过多。收窄后仍能容纳「权重」标签 + 一组加减控件，且菜单项文字不换行。
+ */
+.pf-menu {
+  position: fixed;
+  z-index: 80;
+  width: 152px;
+  padding: 6px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg-hover);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.pf-menu__weight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 6px 6px;
+  border-bottom: 1px solid var(--pf-border);
+  margin-bottom: 4px;
+}
+
+/* 加减排：减号 / 数字 / 加号作为一个整体居中，不再被 margin-left:auto 推到右边 */
+.pf-menu__weight-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pf-menu__weight-label {
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+.pf-menu__weight-value {
+  min-width: 34px;
+  text-align: center;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-menu__step {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-sm);
+  background: transparent;
+  color: var(--pf-text-dim);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pf-menu__step:hover {
+  color: var(--pf-text);
+  border-color: var(--pf-accent);
+}
+
+.pf-menu__item {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--pf-radius-sm);
+  background: transparent;
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-menu__item:hover {
+  background: var(--pf-bg-raised);
+}
+
+.pf-menu__item--danger:hover {
+  color: var(--pf-danger);
+}
+
+/* ---------- 通用空态 ---------- */
+
+.pf-empty {
+  padding: var(--pf-gap-lg) var(--pf-gap-sm);
+  text-align: center;
+}
+
+.pf-empty__text {
+  margin: 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text-dim);
+}
+
+.pf-empty__hint {
+  margin: var(--pf-gap-xs) 0 0;
+  font-size: var(--pf-text-xs);
+  line-height: 1.7;
+  color: var(--pf-text-faint);
+}
+
+/* ---------- 翻译失败横幅（常驻，必须手动关掉） ---------- */
+
+.pf-failure {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  /* 只留左右外边距与工作区内边距对齐：上下间距由顶栏与工作区自己撑开 */
+  margin: 0 var(--pf-gap-sm);
+  padding: 10px 14px;
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius);
+  background: color-mix(in srgb, var(--pf-danger) 14%, var(--pf-bg-raised));
+  /* 失败是必须被看见的事：比普通面板抬高一层阴影，并压在界面之上 */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.pf-failure__mark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--pf-danger);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pf-failure__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pf-failure__title {
+  margin: 0;
+  font-size: var(--pf-text-base);
+  font-weight: 600;
+  color: var(--pf-text);
+}
+
+.pf-failure__reason {
+  margin: 3px 0 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+}
+
+.pf-failure__hint {
+  margin: 3px 0 0;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-dim);
+}
+
+/* 重试 / 我知道了：横排靠右，与正文拉开距离 */
+.pf-failure__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--pf-gap-xs);
+  margin-left: auto;
+}
+
+/* ---------- 提示条 ---------- */
+
+.pf-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  max-width: 60vw;
+  padding: 8px 16px;
+  border-radius: var(--pf-radius);
+  border: 1px solid var(--pf-border-strong);
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 50;
+}
+
+.pf-toast--ok {
+  border-color: var(--pf-ok);
+}
+
+.pf-toast--warn {
+  border-color: var(--pf-warn);
+}
+
+.pf-toast--error {
+  border-color: var(--pf-danger);
+}
+
+/* ---------- 拖拽幽灵元素 ---------- */
+
+.pf-ghost {
+  position: fixed;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--pf-ghost-color);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: translate(14px, 14px);
+  /* 必须不能被命中，否则 elementFromPoint 只会返回幽灵自己 */
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.pf-ghost__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pf-ghost-gradient);
+}
+
+
+/* 全局快照拖到输出区：危险覆盖（D67） */
+.pf-output-pane--danger {
+  position: relative;
+  box-shadow: inset 0 0 0 2px var(--pf-danger);
+  background: color-mix(in srgb, var(--pf-danger) 10%, transparent);
+}
+
+.pf-output-pane__danger-hint {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: block;
+  padding: 4px 10px;
+  margin-bottom: 4px;
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-danger);
+  font-size: var(--pf-text-xs);
+  text-align: center;
+}
+
+
+/* 全局快照的临时判定层（D68）：盖住整个输出框，判定稳定、不闪 */
+.pf-output-droplayer {
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-top: 6px;
+  border: 2px solid var(--pf-danger);
+  border-radius: var(--pf-radius-md);
+  background: color-mix(in srgb, var(--pf-danger) 12%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--pf-danger) 45%, transparent);
+  pointer-events: auto;
+}
+
+.pf-output-droplayer__hint {
+  padding: 3px 10px;
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-danger);
+  font-size: var(--pf-text-xs);
+}
+
+/* ---------- 分组菜单（D111）：可见色勾选 / 移入分组 ---------- */
+
+/* 分组菜单比普通菜单宽：它要放 9 个色块的勾选格；宽度跟着内容走但留上限 */
+.pf-menu--group {
+  width: auto;
+  min-width: 152px;
+  max-width: 228px;
+}
+
+.pf-menu__title {
+  padding: 2px 6px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--pf-border);
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-menu__section {
+  padding: 6px 2px 2px;
+  margin-top: 2px;
+  border-top: 1px solid var(--pf-border);
+}
+
+.pf-menu__section-label {
+  display: block;
+  padding: 0 4px 4px;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+/* 组名列表：菜单里直接铺开（组通常不到十来个，省掉一级子菜单） */
+.pf-menu__folders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 132px;
+  overflow-y: auto;
+}
+
+.pf-menu__folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-sm);
+  background: transparent;
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  cursor: pointer;
+}
+
+.pf-menu__folder:hover {
+  border-color: var(--pf-accent);
+  background: var(--pf-bg-raised);
+}
+
+.pf-menu__folder--on {
+  border-color: var(--pf-accent);
+  color: var(--pf-accent);
+}
+
+.pf-menu__folder--new {
+  color: var(--pf-text-dim);
+  border-style: dashed;
+}
+
+.pf-menu__folder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-menu__folder-tick {
+  font-size: 10px;
+}
+
+.pf-menu__hint {
+  margin: 4px 0 0;
+  padding: 0 4px;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+/* 菜单内嵌的一个普通菜单项（例如「移出分组「作品集」」） */
+.pf-menu__item--compact {
+  padding: 4px 6px;
+  margin-top: 4px;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-dim);
+}
+
+
+/*
+ * D112：面板顶部件（标题 + 搜索 + 色块行）—— 这一层只是给「建组判断区」当地图用，
+ * 本身不加任何视觉（高度仍由里面三个件决定，布局一个字都不改）。
+ */
+.pf-preset__top {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+
+/*
+ * 建组判断区：拖着一颗胶囊到面板顶部时出现。
+ * **初始透明不可见、摸得到**（pointer-events 默认开着，elementFromPoint 能命中）；
+ * 只有指针真的压上来才显形 —— 这里是多区域可选，一上来就整块高亮会误导。
+ */
+.pf-group-dropzone {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--pf-radius);
+  background: transparent;
+  pointer-events: auto;
+}
+
+.pf-group-dropzone--over {
+  border: 2px dashed var(--pf-accent);
+  background: color-mix(in srgb, var(--pf-accent) 16%, transparent);
+}
+
+.pf-group-dropzone__hint {
+  padding: 4px 12px;
+  border: 1px solid var(--pf-accent);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  white-space: nowrap;
+}
+

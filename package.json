@@ -1,0 +1,64 @@
+{
+  "name": "prompt-forge",
+  "private": true,
+  "version": "0.2.0",
+  "description": "榫言（Prompt Forge）：用中文思考、产出英文提示词的 Windows 桌面工具。",
+  "license": "MIT",
+  "author": "TsukimiYachiyo",
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/TsukimiYachiyo/prompt-forge.git"
+  },
+  "homepage": "https://gitee.com/TsukimiYachiyo/prompt-forge",
+  "keywords": [
+    "tauri",
+    "react",
+    "prompt",
+    "translation",
+    "glossary",
+    "windows"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
+    "verify:build": "node scripts/clean-verify-out.cjs && tsc -p tsconfig.verify.json",
+    "verify:logic": "npm run verify:build && node scripts/verify-logic.cjs",
+    "verify:render": "npm run verify:build && node scripts/verify-render.cjs",
+    "verify:dom": "npm run verify:build && node scripts/verify-dom.cjs",
+    "verify:copy": "npm run verify:build && node scripts/verify-copy.cjs",
+    "verify:interaction": "npm run verify:build && node scripts/verify-interaction.cjs",
+    "verify:slice": "npm run verify:build && node scripts/verify-slice.cjs",
+    "verify:scheduler": "npm run verify:build && node scripts/verify-scheduler.cjs",
+    "verify:realtime": "npm run verify:build && node scripts/verify-realtime.cjs",
+    "verify:color-scale": "node scripts/color-scale-arrange.cjs && tsc -p .verify-color-scale/tsconfig.json && node scripts/color-scale-assert.cjs",
+    "verify:packaging": "node scripts/verify-packaging.cjs",
+    "verify:docs": "node scripts/verify-docs.cjs",
+    "verify": "npm run typecheck && npm run verify:logic && npm run verify:slice && npm run verify:scheduler && npm run verify:realtime && npm run verify:render && npm run verify:dom && npm run verify:copy && npm run verify:interaction && npm run verify:color-scale && npm run verify:packaging && npm run verify:docs",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "audit": "node scripts/audit-project.cjs"
+  },
+  "dependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.64.7",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.8.3",
+    "@tauri-apps/plugin-opener": "^2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "^30.1.3",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16"
+  }
+}

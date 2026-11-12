@@ -1,0 +1,480 @@
+/**
+ * 模块行（输出列表里的一排）与中文输入框。
+ * 颜色通过行内变量 --pf-module-color 注入（来自颜色注册表），本文件不写死任何具体色值。
+ *
+ * 一排的结构：颜色条 | 序号 | 只读内容（胶囊 + 英文译文） | 模块枢
+ * 底部还有一条透明细条用来拖高度。
+ */
+
+.pf-module {
+  --pf-module-color: var(--pf-border-strong);
+
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  /* 高度由行内 style 给出（底部细条拖动），这里只兜住下限 */
+  min-height: 56px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: var(--pf-bg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pf-module--selected {
+  border-color: var(--pf-accent);
+  box-shadow: 0 0 0 1px var(--pf-accent);
+}
+
+.pf-module__color-bar {
+  flex: 0 0 4px;
+  background: var(--pf-module-gradient);
+}
+
+.pf-module__index {
+  flex: 0 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid var(--pf-border);
+}
+
+.pf-module__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: var(--pf-gap-sm) var(--pf-gap);
+  overflow-y: auto;
+  font-size: var(--pf-text-sm);
+  line-height: 1.6;
+}
+
+.pf-module__text {
+  color: var(--pf-text-dim);
+  word-break: break-word;
+  user-select: text;
+}
+
+.pf-module__placeholder {
+  color: var(--pf-text-faint);
+  font-style: italic;
+}
+
+.pf-module__error {
+  color: var(--pf-danger);
+  word-break: break-word;
+  user-select: text;
+}
+
+.pf-module__warn {
+  font-size: var(--pf-text-xs);
+  color: var(--pf-warn);
+}
+
+/* ---------- 底部细拖拽条：单独调整这一排的高度 ---------- */
+
+.pf-module__resize {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  z-index: 5;
+  cursor: ns-resize;
+  transition: background-color 0.15s;
+}
+
+.pf-module__resize:hover {
+  background: color-mix(in srgb, var(--pf-accent) 35%, transparent);
+}
+
+/* ---------- 拖拽落点提示 ---------- */
+
+/* 预设拖到这一排上：整排高亮，颜色取**被拖那条预设的归属色**（需求 3、6） */
+.pf-module--drop {
+  border-color: var(--pf-drop-color);
+  box-shadow: 0 0 0 1px var(--pf-drop-color);
+  background: color-mix(in srgb, var(--pf-drop-color) 14%, var(--pf-bg));
+}
+
+.pf-module__drop-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--pf-drop-color) 16%, transparent);
+  pointer-events: none;
+}
+
+/* 拖模块枢回到自身：危险色高亮 */
+.pf-module--danger {
+  border-color: var(--pf-danger);
+  box-shadow: inset 0 0 0 1px var(--pf-danger);
+  background: color-mix(in srgb, var(--pf-danger) 12%, var(--pf-bg));
+}
+
+.pf-module__danger-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--pf-danger) 18%, transparent);
+  pointer-events: none;
+}
+
+/* 两种提示共用的文字气泡 */
+.pf-half__hint {
+  padding: 2px 10px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+}
+
+.pf-module__drop-hint .pf-half__hint {
+  border-color: var(--pf-drop-color);
+}
+
+.pf-module__danger-hint .pf-half__hint {
+  border-color: var(--pf-danger);
+}
+
+/* ---------- 模块枢（ModuleHub：模块级操作枢轴，也是胶囊生成器） ---------- */
+
+.pf-hub {
+  /*
+   * 宽度给到 36px 而不是刚好 28px：外框两侧因此各有 10px 空隙，
+   * 不再贴着模块右边界；同时它仍是 36px 宽的整条可拖区域（拖拽手感不受影响）。
+   * align-self 覆盖父级 .pf-module 的 stretch：这一条只为了把高度交给内容，
+   * 免得将来有人给按钮加背景/边框时被拉成整排那么高。
+   */
+  flex: 0 0 36px;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  /* 与模块右边界之间的呼吸空间 */
+  margin: 0 10px 0 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+}
+
+/*
+ * 外框：空心圆角方块，边框用这一排的颜色。
+ *
+ * 尺寸写死四道（width、height、min 与 max 的宽高各一）并附 aspect-ratio：
+ * 它同时是 flex 子项与块级盒子，任何一条「被拉伸 / 被压缩」的路径都要堵死，
+ * 否则会被压成竖长方形。正方形的外观是需求，不是巧合。
+ *
+ * 注意：本文件里**不要写含 `星号斜杠` 的注释**（例如列举 min 与 max 通配写法），
+ * 那个字符序列会提前结束注释，lightningcss 压缩时报 Delim('*') 直接让构建失败。
+ */
+.pf-hub__square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--pf-hub-size);
+  height: var(--pf-hub-size);
+  min-width: var(--pf-hub-size);
+  max-width: var(--pf-hub-size);
+  min-height: var(--pf-hub-size);
+  max-height: var(--pf-hub-size);
+  /* 单值写法：`1 / 1` 会被 lightningcss 压缩器解析失败（Delim('*')），不要改回去 */
+  aspect-ratio: 1;
+  border: 1px solid var(--pf-module-color);
+  border-radius: 4px;
+  background: var(--pf-bg-sunken);
+  transition: background-color 0.15s, transform 0.15s, border-color 0.15s;
+}
+
+/* 中心的小实心方块：让「模块枢」看起来是填充的，同时与边框留出空隙 */
+.pf-hub__core {
+  flex: 0 0 auto;
+  width: calc(var(--pf-hub-size) / 2.6);
+  height: calc(var(--pf-hub-size) / 2.6);
+  /* 同上：用单值写法，避免压缩器解析失败 */
+  aspect-ratio: 1;
+  border-radius: 1px;
+  background: var(--pf-module-gradient);
+}
+
+.pf-hub:hover .pf-hub__square {
+  transform: scale(1.12);
+  border-color: var(--pf-module-color);
+  background: color-mix(in srgb, var(--pf-module-color) 30%, transparent);
+}
+
+/* ---------- 胶囊标签（颜色取预设归属色，与预设库里的色点同一套渐变） ---------- */
+
+.pf-capsules {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pf-gap-xs) 6px;
+}
+
+.pf-capsule {
+  --pf-capsule-color: var(--pf-border-strong);
+  --pf-capsule-gradient: var(--pf-capsule-color);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border: 1px solid color-mix(in srgb, var(--pf-capsule-color) 55%, transparent);
+  border-radius: var(--pf-radius-pill);
+  background: color-mix(in srgb, var(--pf-capsule-color) 14%, transparent);
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+}
+
+/* 小圆点：与预设库、筛选色块一致 */
+.pf-capsule__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pf-capsule-gradient);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- 输出模块里的胶囊：悬停整颗变成删除用的 X（需求 2） ---------- */
+
+.pf-capsule--label {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 单格网格：内容与 X 叠在同一格里，X 因此不参与宽度计算 */
+.pf-capsule--label .pf-capsule__hit {
+  display: grid;
+  grid-template-columns: auto;
+  align-items: center;
+  justify-items: center;
+}
+
+.pf-capsule__hit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  padding: 0 8px 0 6px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/*
+ * 「色点 + 名字」与「×」叠在同一个网格单元里（grid-area 相同），
+ * 因此 × 完全不影响胶囊宽度 —— 悬停时它只从透明变红，胶囊长度一动不动，
+ * 后面那些胶囊也不会左右跳。悬停命中区是整颗 .pf-capsule--label，
+ * 所以鼠标落在色点、名字或空隙上任意一处，都会变成 X。
+ */
+.pf-capsule__content,
+.pf-capsule__cross {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pf-capsule__cross {
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 600;
+  /* 只留占位、不留可见字形：宽度由上面的内容决定，× 不撑大胶囊 */
+  visibility: hidden;
+}
+
+.pf-capsule__name {
+  white-space: nowrap;
+}
+
+/* 悬停：隐掉色点与名字，原地换成一个大 X，明示「点一下即删除」 */
+.pf-capsule--label:hover {
+  border-color: var(--pf-danger);
+  background: color-mix(in srgb, var(--pf-danger) 20%, transparent);
+}
+
+.pf-capsule--label:hover .pf-capsule__content {
+  visibility: hidden;
+}
+
+.pf-capsule--label:hover .pf-capsule__cross {
+  visibility: visible;
+  color: var(--pf-danger);
+}
+
+/* 编辑器里的药丸：跟着文字基线走，是原子节点（contenteditable=false） */
+/*
+ * D120（UI.html 原稿）：权重控件做在**药丸内部**——
+ * 常态右侧干净（权重区不占位）；悬停原地展开「− 值 +」，名字压到 0.6 把注意力让出来；
+ * 已加权（≠ 1）时常态就露数值，悬停才铺开加减。展开会推挤后面的内容，
+ * 这是原稿明确要的（用户 2026-11 拍板，覆盖 VISION 里「悬停不推挤」那条）。
+ */
+.pf-capsule--inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: auto;
+  /* D79：胶囊之间不再有"空格字符"，间距改由这里承担（1px → 2px，相邻两颗约 4px） */
+  margin: 0 2px;
+  padding: 0;
+  line-height: 1.5;
+  vertical-align: baseline;
+  user-select: none;
+  cursor: default;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* 名字块：圆点 + 中文名。内边距从药丸搬到这一层，所以静止时的样子一个字没变 */
+.pf-capsule__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  transition: opacity 0.2s ease, padding-right 0.2s ease;
+}
+
+.pf-capsule--inline .pf-capsule__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.pf-capsule__text {
+  white-space: nowrap;
+}
+
+/* 权重区：常态 display:none —— 不占位、不参与行宽，比 width:0 更干净 */
+.pf-capsule__weight {
+  display: none;
+  align-items: center;
+  padding: 0 6px;
+  border-left: 1px solid color-mix(in srgb, var(--pf-capsule-color) 55%, transparent);
+}
+
+.pf-capsule__weight-value {
+  min-width: 26px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--pf-capsule-color) 72%, var(--pf-text));
+  /* 未加权时它只是「提示这里是 1」，所以压暗；已加权才实心 */
+  opacity: 0.6;
+  cursor: text;
+}
+
+.pf-capsule__weight-step {
+  display: none;
+  width: 14px;
+  text-align: center;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pf-capsule-color) 72%, var(--pf-text));
+  cursor: pointer;
+  border-radius: 50%;
+  line-height: 1.2;
+}
+
+.pf-capsule__weight-step:hover {
+  background: color-mix(in srgb, var(--pf-capsule-color) 26%, transparent);
+}
+
+/* 到头了：同上限一样原地变淡，点了不再走 */
+.pf-capsule__weight-step[aria-disabled='true'] {
+  opacity: 0.35;
+  cursor: default;
+  background: transparent;
+}
+
+/* 手输框：占数值那一格，尺寸一致所以展开宽度不跳 */
+.pf-capsule__weight-input {
+  width: 34px;
+  padding: 0 2px;
+  border: 1px solid color-mix(in srgb, var(--pf-capsule-color) 70%, transparent);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg);
+  color: var(--pf-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+}
+
+/* 已加权：常态就露数值（不带加减） */
+.pf-capsule--weighted .pf-capsule__weight {
+  display: inline-flex;
+}
+
+.pf-capsule--weighted .pf-capsule__weight-value {
+  opacity: 1;
+}
+
+/* 悬停（两种状态都展开）：加减铺开、名字变淡、本体加深 */
+.pf-capsule--inline:hover .pf-capsule__weight {
+  display: inline-flex;
+}
+
+.pf-capsule--inline:hover .pf-capsule__weight-step {
+  display: inline-block;
+}
+
+.pf-capsule--inline:hover .pf-capsule__name {
+  opacity: 0.6;
+}
+
+.pf-capsule--inline:hover {
+  background: color-mix(in srgb, var(--pf-capsule-color) 22%, transparent);
+  border-color: color-mix(in srgb, var(--pf-capsule-color) 80%, transparent);
+}
+
+/* ---------- 中文源内容编辑器（下方输入框） ---------- */
+
+.pf-source__input {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: var(--pf-gap-sm) 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-size: var(--pf-text-base);
+  line-height: 1.9;
+  outline: none;
+  overflow-y: auto;
+  /* contenteditable：换行由 \n 与 <br> 表示，必须 pre-wrap；长英文单词需要断行 */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  transition: border-color 0.15s;
+}
+
+.pf-source__input:focus {
+  border-color: var(--pf-accent);
+}
+
+/* 空编辑器时的中文占位提示（:empty 依赖 DOM 里真的没有子节点） */
+.pf-source__input:empty::before {
+  content: attr(data-placeholder);
+  color: var(--pf-text-faint);
+  pointer-events: none;
+}

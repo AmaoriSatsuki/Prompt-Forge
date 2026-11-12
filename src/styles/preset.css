@@ -1,0 +1,577 @@
+/* 预设库：列表、单条预设、权重步进器、编辑器弹窗 */
+
+.pf-preset__head {
+  gap: var(--pf-gap-sm);
+}
+
+/* 模块枢拖到这里 → 保存为预设（需求 9） */
+.pf-preset--drop-active {
+  box-shadow: inset 0 0 0 2px var(--pf-accent);
+}
+
+.pf-preset__title {
+  white-space: nowrap;
+}
+
+.pf-preset__count {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-preset__error {
+  margin: 0;
+  padding: var(--pf-gap-sm) var(--pf-gap);
+  font-size: var(--pf-text-xs);
+  color: var(--pf-warn);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+/* 分页条（D66）：四个库共用，保留列表自身滚动条 */
+.pf-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pf-gap-sm);
+  /*
+   * D89：分页条与胶囊列表之间**要有空隙**（用户实测：最后一行贴着分页条，
+   * 看着像被压住/切掉了一半）。两处各给 8px ——
+   * 这里 8px 的 margin-top + `.pf-preset-list` 的 8px padding-bottom。
+   */
+  margin-top: var(--pf-gap-sm);
+  padding: var(--pf-gap-sm) var(--pf-gap);
+  border-top: 1px solid var(--pf-border);
+}
+
+.pf-pager__info {
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-dim);
+}
+
+/* ---------- 列表 ---------- */
+
+/* 预设列表：胶囊横向排列、宽度自适应、超出就换行、**整行靠左对齐** */
+.pf-preset-list {
+  list-style: none;
+  margin: 0;
+  /* D89：与下面的分页条留出 8px（配合 .pf-pager 的 margin-top，共 16px 空隙） */
+  padding: 0 0 var(--pf-gap-sm);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+/* 紧凑 chip：只有颜色点 + 中文命名（权重/编辑/删除都在右键菜单里） */
+.pf-preset-item {
+  --pf-preset-color: var(--pf-border-strong);
+  --pf-preset-gradient: var(--pf-preset-color);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* 宽度跟着内容走，不再撑满整行（需求 4） */
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--pf-radius-pill);
+  background: var(--pf-bg-sunken);
+  cursor: grab;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+/* 悬停高亮（需求 2） */
+.pf-preset-item:hover {
+  border-color: color-mix(in srgb, var(--pf-preset-color) 60%, transparent);
+  background: color-mix(in srgb, var(--pf-preset-color) 16%, var(--pf-bg-raised));
+}
+
+.pf-preset-item__dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  /* 与筛选色块、胶囊小圆点用的是同一套渐变 */
+  background: var(--pf-preset-gradient);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.pf-preset-item__label {
+  /* 长名字才截断，短名字就贴着内容宽度（需求 4） */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+}
+
+/* ---------- 权重步进器 ---------- */
+
+.pf-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  overflow: hidden;
+  background: var(--pf-bg-sunken);
+}
+
+.pf-stepper__btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pf-text-dim);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pf-stepper__btn:hover:not(:disabled) {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+}
+
+.pf-stepper__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pf-stepper__value {
+  width: 48px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--pf-border);
+  border-right: 1px solid var(--pf-border);
+  background: transparent;
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  appearance: textfield;
+}
+
+.pf-stepper__value::-webkit-outer-spin-button,
+.pf-stepper__value::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* ---------- 弹窗 ---------- */
+
+.pf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.pf-modal__panel {
+  position: relative;
+  width: 460px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: var(--pf-gap-lg);
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-lg);
+  background: var(--pf-bg-raised);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.pf-modal__panel--narrow {
+  width: 380px;
+}
+
+.pf-modal__title {
+  margin: 0 0 var(--pf-gap);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pf-modal__text {
+  margin: 0;
+  font-size: var(--pf-text-base);
+  color: var(--pf-text-dim);
+}
+
+.pf-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--pf-gap-sm);
+  margin-top: var(--pf-gap-lg);
+}
+
+/* ---------- 表单 ---------- */
+
+.pf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--pf-gap);
+}
+
+.pf-field__label {
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+.pf-field__input,
+.pf-field__textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+  font-size: var(--pf-text-base);
+  font-family: inherit;
+  line-height: 1.7;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pf-field__input:focus,
+.pf-field__textarea:focus {
+  border-color: var(--pf-accent);
+}
+
+.pf-field__textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+
+.pf-field__error {
+  margin: 0;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-danger);
+}
+
+.pf-color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-gap-xs);
+}
+
+
+/* ---------- 快照库（D67） ---------- */
+
+.pf-preset__actions {
+  display: flex;
+  gap: var(--pf-gap-sm);
+}
+
+.pf-snap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-snap-item {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: var(--pf-gap-sm);
+  padding: 6px 10px;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-raised);
+  cursor: grab;
+}
+
+.pf-snap-item:hover {
+  border-color: var(--pf-border-strong);
+}
+
+.pf-snap-item__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+}
+
+.pf-snap-item__tag {
+  flex: none;
+  margin-left: auto;
+  padding: 1px 8px;
+  /* D69：与外框同一种圆角长方形（不是胶囊），文字白色 */
+  border-radius: var(--pf-radius-sm);
+  background: #0984e3;
+  color: #ffffff;
+  font-size: var(--pf-text-xs);
+  font-weight: 600;
+}
+
+.pf-snap-item__tag--single {
+  background: #2ecc71;
+}
+
+/*
+ * D76：快照卡右侧的两个图标按钮（更新 / 复制）。
+ * 排版口径（用户原文）：`【全局】[更新][复制]` —— 标签在左、按钮在右，整组靠右对齐；
+ * 标签本来就带 `margin-left: auto`，所以这一组天然被推到右边。
+ */
+.pf-snap-item__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.pf-snap-item__btn {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--pf-radius-sm);
+  background: transparent;
+  color: var(--pf-text-dim);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+/* 定宽容器里的内联 SVG 必须显式声明尺寸，否则会被 flex 压塌成描边宽度（架构 §6.11 / D32） */
+.pf-snap-item__btn svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 悬停只换颜色与描边，不改尺寸、不改 display（架构 §6.10：悬停不得改动布局） */
+.pf-snap-item__btn:hover {
+  border-color: var(--pf-border-strong);
+  background: var(--pf-bg-sunken);
+  color: var(--pf-text);
+}
+
+.pf-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-pill);
+  background: transparent;
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  cursor: pointer;
+}
+
+.pf-chip--on {
+  border-color: var(--pf-accent);
+  background: color-mix(in srgb, var(--pf-accent) 20%, transparent);
+}
+
+
+/* 悬停预览浮层（D71）：预设/画师显示英文内容，快照显示全文复制结果 */
+.pf-preview {
+  z-index: 40;
+  /* D72：外层只管边框与圆角，滚动放在内层 —— 滚动条不会切掉右侧圆角 */
+  overflow: hidden;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-bg-raised);
+  color: var(--pf-text);
+  font-size: var(--pf-text-xs);
+  line-height: 1.5;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  pointer-events: auto;
+}
+
+.pf-preview__body {
+  max-height: 240px;
+  /* D73：不滚动，超出直接隐藏，由下方提示接管 */
+  overflow: hidden;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pf-preview__more {
+  padding: 4px 10px 6px;
+  border-top: 1px solid var(--pf-border);
+  color: var(--pf-text-dim);
+  font-size: var(--pf-text-xs);
+  text-align: center;
+}
+
+/* ---------- 预设分组（D111）：折叠砖 / 展开卡 ---------- */
+
+/* 组块容器：砖与卡共用同一个 flex-wrap，卡是 100% 宽因此自动独占一行 */
+.pf-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: var(--pf-gap-sm);
+}
+
+.pf-blocks__groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/*
+ * 折叠态：与胶囊同高的圆角砖。与胶囊的区别只有三处 ——
+ * 圆角 8px（胶囊是无限圆角）、有描边、没有色点；不显示任何颜色信息。
+ */
+.pf-group-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius);
+  background: transparent;
+  color: var(--pf-text);
+  font-size: var(--pf-text-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.pf-group-tile:hover {
+  border-color: var(--pf-accent);
+  background: var(--pf-bg-raised);
+}
+
+/* D114：边框跟着组色走（色块是什么色，边框就是什么色） */
+.pf-group-tile {
+  border-color: color-mix(in srgb, var(--pf-group-color, var(--pf-border-strong)) 55%, var(--pf-border-strong));
+}
+
+.pf-group-tile--drop {
+  border-color: var(--pf-accent);
+  background: color-mix(in srgb, var(--pf-accent) 18%, transparent);
+}
+
+.pf-group-tile__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-group-tile__count {
+  flex: 0 0 auto;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 展开态：占满一整行的圆角卡。**左右内边距为 0** ——
+ * 面板宽度是按「一行 8 颗」算的，卡片一旦左右留白就会掉到 7 颗，
+ * 连累既有几何契约；留白只给上下。
+ */
+.pf-group-card {
+  flex: 0 0 100%;
+  max-width: 100%;
+  /* D114：左右也要留白（原来是 0，胶囊贴着边框，用户实测觉得怪） */
+  padding: 4px 8px 6px;
+  border: 1px solid color-mix(in srgb, var(--pf-group-color, var(--pf-border)) 60%, var(--pf-border));
+  border-radius: var(--pf-radius-lg);
+  background: color-mix(in srgb, var(--pf-group-color, var(--pf-bg-raised)) 5%, transparent);
+}
+
+.pf-group-card--drop {
+  border-color: var(--pf-accent);
+}
+
+.pf-group-card__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 4px;
+}
+
+.pf-group-card__toggle {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pf-text-dim);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pf-group-card__toggle:hover {
+  color: var(--pf-accent);
+}
+
+.pf-group-card__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pf-text-sm);
+  color: var(--pf-text);
+}
+
+.pf-group-card__count {
+  margin-left: auto;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-group-card__empty {
+  margin: 0;
+  padding: 0 8px 2px;
+  font-size: var(--pf-text-xs);
+  color: var(--pf-text-faint);
+}
+
+/* 卡片内 / 组块内的胶囊网格：底部留白交给容器，不再叠一层 */
+.pf-preset-list--flat {
+  padding-bottom: 0;
+}
+
+/*
+ * D113：组名前的色块 —— **圆角正方形**，与胶囊小圆点同源取色。
+ * 组名允许重名（同名不同色是两个组），主界面就靠这块颜色区分。
+ */
+.pf-group__swatch {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--pf-group-swatch-gradient, var(--pf-group-swatch));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}

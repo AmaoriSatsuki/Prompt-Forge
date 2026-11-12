@@ -1,0 +1,59 @@
+/* 按钮 */
+
+/*
+ * 按钮文字永远是「一行、按内容占宽」。
+ *
+ * 这里的两条不是洁癖，是实测 bug：`.pf-btn` 是 inline-flex、默认 `flex-shrink: 1`，
+ * 而它经常和一段可变长度的文字同处一个 flex 行（最典型的是设置里的「测试连接 + 结论」）。
+ * 结论文字一长，flex 就会去压按钮：按钮被挤窄 → 中文两字换行/变形。
+ * 因此：**按钮不参与收缩**（宽度就是内容宽度），且**文字绝不换行**。
+ */
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--pf-radius);
+  background: transparent;
+  color: var(--pf-text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.pf-btn:hover:not(:disabled) {
+  color: var(--pf-text);
+  border-color: var(--pf-accent);
+}
+
+.pf-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pf-btn--primary {
+  color: #fff;
+  border-color: var(--pf-accent);
+  background: var(--pf-accent);
+}
+
+.pf-btn--primary:hover:not(:disabled) {
+  background: var(--pf-accent-strong);
+  border-color: var(--pf-accent-strong);
+  color: #fff;
+}
+
+.pf-btn--danger:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--pf-danger);
+  background: var(--pf-danger);
+}
+
+.pf-btn--compact {
+  height: 22px;
+  padding: 0 8px;
+  font-size: var(--pf-text-sm);
+}
